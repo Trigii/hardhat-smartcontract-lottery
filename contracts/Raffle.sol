@@ -10,8 +10,10 @@
 pragma solidity ^0.8.8;
 
 import '@chainlink/contracts/src/v0.8/vrf/VRFConsumerBaseV2.sol';
+import {VRFConsumerBaseV2Plus} from '@chainlink/contracts/src/v0.8/vrf/dev/VRFConsumerBaseV2Plus.sol';
 import '@chainlink/contracts/src/v0.8/vrf/interfaces/VRFCoordinatorV2Interface.sol';
 import '@chainlink/contracts/src/v0.8/automation/interfaces/KeeperCompatibleInterface.sol';
+import {VRFV2PlusClient} from '@chainlink/contracts/src/v0.8/vrf/dev/libraries/VRFV2PlusClient.sol';
 
 error Raffle__NotEnoughETHEntered(); // not enough money for entering the raffle
 error Raffle__TransferFailed(); // failed to transfer the price to the winner
@@ -24,7 +26,7 @@ error Raffle__UpkeepNotNeeded(uint256 currentBalance, uint256 numPlayers, uint25
  * @notice This contract is for creating an untamperable decentralized smart contract
  * @dev This implements Chainlink VRF v2 and Chainlink Keepers
  */
-contract Raffle is VRFConsumerBaseV2, KeeperCompatibleInterface {
+contract Raffle is VRFConsumerBaseV2Plus, KeeperCompatibleInterface {
     /* Type declarations */
     enum RaffleState {
         OPEN,
@@ -36,7 +38,7 @@ contract Raffle is VRFConsumerBaseV2, KeeperCompatibleInterface {
     address payable[] private s_players; // contains the addresses participating on the lottery
     VRFCoordinatorV2Interface private immutable i_vrfCoordinator;
     bytes32 private immutable i_gasLane; // gasLane (in hash value): maximum gas price you are willing to pay for a request in wei (if the gas is very expensive, we avoid getting the random number)
-    uint64 private immutable i_subscriptionId; // subscription that we need for funding the request to get the random number
+    uint256 private immutable i_subscriptionId; // subscription that we need for funding the request to get the random number
     uint16 private constant REQUEST_CONFIRMATIONS = 3; // how many confirmations the chainlink node should wait before responding
     uint32 private immutable i_callbackGasLimit; // limit for how much gas to use for the callback request to the contracts "fulfillRandomWords"
     uint32 private constant NUM_WORDS = 1; // how many random numbers we want to get
@@ -54,12 +56,12 @@ contract Raffle is VRFConsumerBaseV2, KeeperCompatibleInterface {
 
     constructor(
         address vrfCoordinatorV2, // contract address (we probably need to deploy some mocks to that address, since we have to interact with a `vrfCoordinatorV2` contract that is outside of the project. )
-        uint64 subscriptionId,
+        uint256 subscriptionId,
         bytes32 gasLane,
         uint256 interval,
         uint256 entranceFee,
         uint32 callbackGasLimit
-    ) VRFConsumerBaseV2(vrfCoordinatorV2) {
+    ) VRFConsumerBaseV2Plus(vrfCoordinatorV2) {
         // VRFCoordinator = address of the contract that does the random number verification.
         i_entranceFee = entranceFee;
         i_vrfCoordinator = VRFCoordinatorV2Interface(vrfCoordinatorV2);
@@ -128,6 +130,20 @@ contract Raffle is VRFConsumerBaseV2, KeeperCompatibleInterface {
             );
         }
         s_raffleState = RaffleState.CALCULATING; // block the lottery so no one can enter
+        // Will revert if subscription is not set and funded.
+        uint256 requestId = s_vrfCoordinator.requestRandomWords(
+            VRFV2PlusClient.RandomWordsRequest({
+                keyHash: i_gasLane,
+                subId: i_subscriptionId,
+                requestConfirmations: REQUEST_CONFIRMATIONS,
+                callbackGasLimit: i_callbackGasLimit,
+                numWords: NUM_WORDS,
+                extraArgs: VRFV2PlusClient._argsToBytes(
+                    VRFV2PlusClient.ExtraArgsV1({nativePayment: false})
+                )
+            })
+        );
+        /*
         uint256 requestId = i_vrfCoordinator.requestRandomWords(
             i_gasLane,
             i_subscriptionId,
@@ -135,6 +151,7 @@ contract Raffle is VRFConsumerBaseV2, KeeperCompatibleInterface {
             i_callbackGasLimit,
             NUM_WORDS
         );
+        */
         emit RequestedRaffleWinner(requestId); // this is redundant (the i_vrfCoordinator.requestRandomWords() already emits an event with the requestId)
     }
 

@@ -7,7 +7,7 @@ const { developmentChains, networkConfig } = require('../../helper-hardhat-confi
 // 2. Deploy our contract using the SubId (copy the ID and paste it on the helper-hardhat-config.js; deploy using `yarn hardhat deploy --network sepolia`)
 // 3. Register the contract with Chainlink VRF & its subId (add as a consumer the address of the deployed contract)
 // 4. Register the contract with Chainlink Keepers (go to https://automation.chain.link/ and register a new upkeep using the deployed contract address)
-// 5. Run the staging tests (run `yarn hardhat test --network sepolia`)
+// 5. Run the staging tests (run `yarn hardhat test --network sepolia`) or enter the raffle as a client (run `yarn hardhat run scripts/enter.js --network sepolia`)
 
 developmentChains.includes(network.name)
     ? describe.skip

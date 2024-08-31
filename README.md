@@ -9,8 +9,8 @@ This repo contains a tamper proof autonomous verifiably random lottery.
 
 ## Quickstart
 
-```
-git clone
+```sh
+git clone https://github.com/Trigii/hardhat-smartcontract-lottery.git
 cd hardhat-smartcontract-lottery
 yarn
 ```
@@ -19,19 +19,19 @@ yarn
 
 ### Deploy
 
-```
+```sh
 yarn hardhat deploy
 ```
 
 ### Testing
 
-```
+```sh
 yarn hardhat test
 ```
 
 ### Test Coverage
 
-```
+```sh
 yarn hardhat coverage
 ```
 
@@ -51,7 +51,7 @@ Head over to faucets.chain.link and get some testnet ETH & LINK. You should see 
 
 3. Setup a Chainlink VRF Subscription ID
 
-Head over to vrf.chain.link and setup a new subscription, and get a subscriptionId. You can reuse an old subscription if you already have one.
+Head over to [vrf.chain.link](https://vrf.chain.link/sepolia) and setup a new subscription, and get a subscriptionId. You can reuse an old subscription if you already have one.
 
 You should leave this step with:
 
@@ -63,7 +63,7 @@ In your helper-hardhat-config.js add your subscriptionId under the section of th
 
 Then run:
 
-```
+```sh
 yarn hardhat deploy --network sepolia
 ```
 
@@ -75,16 +75,21 @@ Go back to vrf.chain.link and under your subscription add Add consumer and add y
 
 5. Register a Chainlink Keepers Upkeep
 
-Go to keepers.chain.link and register a new upkeep. Choose Custom logic as your trigger mechanism for automation.
+Go to [keepers.chain.link](https://automation.chain.link/) and register a new upkeep. Choose Custom logic as your trigger mechanism for automation.
 
 Enter your raffle!
 Your contract is now setup to be a tamper proof autonomous verifiably random lottery. Enter the lottery by running:
 
-```
+```sh
 yarn hardhat run scripts/enter.js --network sepolia
+```
+
+You can also run the staging test now:
+
+```sh
+yarn hardhat test --network sepolia
 ```
 
 ## TODO
 
 -   Create the subscription ID for the Chainlink VRF programatically (for the testnet): its like the developer chains but with the testnet
--   Fix uint64 suscriptionId (change it to uint256 and use the vrfCoordinatorPlus)
